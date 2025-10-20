@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema en Mantenimiento - CORSEC-TECH</title>
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/img/favicon/favicon-16x16.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .circle:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            top: 20%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .circle:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            top: 60%;
+            left: 80%;
+            animation-delay: 2s;
+        }
+
+        .circle:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            top: 80%;
+            left: 10%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .maintenance-container {
+            text-align: center;
+            max-width: 600px;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .maintenance-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .message {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .progress-container {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 4px;
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: linear-gradient(90deg, #00d4ff, #090979);
+            border-radius: 25px;
+            width: 0%;
+            animation: progress 8s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 0%; }
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            margin-top: 15px;
+            opacity: 0.7;
+        }
+
+        .contact-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .contact-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .estimated-time {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .time-highlight {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .maintenance-container {
+                margin: 20px;
+                padding: 30px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .maintenance-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-animation">
+        <div class="circle"></div>
+        <div class="circle"></div>
+        <div class="circle"></div>
+    </div>
+
+    <div class="maintenance-container">
+        <div class="logo">CORSEC-TECH</div>
+        
+        <div class="maintenance-icon">⚙️</div>
+        
+        <h1>Sistema en Mantenimiento</h1>
+        
+        <p class="subtitle">Estamos mejorando nuestros servicios</p>
+        
+        <div class="message">
+            Nuestro sistema de gestión de proveedores está siendo actualizado con las últimas mejoras en inteligencia artificial para ofrecerte una mejor experiencia.
+        </div>
+
+        <div class="estimated-time">
+            <strong>Tiempo estimado:</strong> <span class="time-highlight">30-45 minutos</span>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar"></div>
+        </div>
+
+        <div class="status-text">
+            Procesando actualizaciones del sistema...
+        </div>
+
+        <div class="contact-info">
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh cada 2 minutos para verificar si el mantenimiento terminó
+        setTimeout(function() {
+            location.reload();
+        }, 120000); // 2 minutos
+
+        // Mostrar hora actual
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES');
+            console.log('Última verificación:', timeString);
+        }
+        
+        updateTime();
+        setInterval(updateTime, 60000); // Actualizar cada minuto
+    </script>
+</body>
+</html>
