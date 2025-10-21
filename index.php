@@ -18,7 +18,7 @@ if ($maintenance_mode) {
 <title>WEC - IA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="title" content="WEC - IA">
-<meta name="author" content="CORSEC-TECH">
+<meta name="author" content="WEC - IA">
 <meta name="description" content="IA que genera ideas, impulsa decisiones y transforma tu negocio.">
 <meta name="keywords" content="IA generativa empresarial, automatización inteligente, decisiones basadas en datos, productividad aumentada, eficiencia operativa, innovación acelerada, escalabilidad segura" />
 <link rel="canonical" href="https://corsec.tech/wecIA2">
@@ -28,14 +28,14 @@ if ($maintenance_mode) {
 <meta property="og:url" content="https://corsec.tech/wecIA2">
 <meta property="og:title" content="WEC - IA">
 <meta property="og:description" content="IA que genera ideas, impulsa decisiones y transforma tu negocio..">
-<meta property="og:image" content="assets/img/proCorsec.jpg">
+<meta property="og:image" content="assets/img/wec.png">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://corsec.tech/wecIA2">
 <meta property="twitter:title" content="WEC - IA">
 <meta property="twitter:description" content="IA que genera ideas, impulsa decisiones y transforma tu negocio..">
-<meta property="twitter:image" content="assets/img/proCorsec.jpg">
+<meta property="twitter:image" content="assets/img/wec.png">
 
 <!-- Favicon -->
 <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon/apple-touch-icon.png">
