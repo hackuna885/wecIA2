@@ -1,11 +1,9 @@
 const Inicio = { template: '<web-home></web-home>' }
 const Web_dashBoard = { template: '<web-dashBoard></web-dashBoard>' }
-const Web_chats = { template: '<web-chats></web-chats>' }
 const Web_usuarios = { template: '<web-usuarios></web-usuarios>' }
-const Web_reportes = { template: '<web-reportes></web-reportes>' }
+const Web_chats = { template: '<web-chats></web-chats>' }
 const Web_configuracion = { template: '<web-configuracion></web-configuracion>' }
-const Web_auditoria = { template: '<web-auditoria></web-auditoria>' }
-const Web_conclusion = { template: '<web-conclusion></web-conclusion>' }
+
 
 const routes = [
   { 
@@ -26,9 +24,9 @@ const routes = [
     meta: { requiresAuth: true } 
   },
   { 
-    path: '/reportes', 
-    name: 'reportes',
-    component: Web_reportes, 
+    path: '/chats', 
+    name: 'chats',
+    component: Web_chats, 
     meta: { requiresAuth: true } 
   },
   { 
@@ -36,25 +34,7 @@ const routes = [
     name: 'configuracion',
     component: Web_configuracion, 
     meta: { requiresAuth: true } 
-  },
-  { 
-    path: '/chats', 
-    name: 'chats',
-    component: Web_chats, 
-    meta: { requiresAuth: true } 
-  },
-  { 
-    path: '/auditoria', 
-    name: 'auditoria',
-    component: Web_auditoria, 
-    meta: { requiresAuth: true } 
-  },
-  { 
-    path: '/conclusion', 
-    name: 'conclusion',
-    component: Web_conclusion, 
-    meta: { requiresAuth: true } 
-  },
+  }
 ]
 
 const router = VueRouter.createRouter({

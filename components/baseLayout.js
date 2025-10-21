@@ -31,7 +31,7 @@ app.component("base-layout", {
         <div class="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
           <div class="d-flex align-items-center">
             <div class="avatar-lg me-4">
-              <img src="assets/img/team/teamCorsec.jpg" class="card-img-top rounded-circle border-white" alt="Admin">
+              <img src="assets/img/team/team.jpg" class="card-img-top rounded-circle border-white" alt="Admin">
             </div>
             <div class="d-block">
               <h2 class="h5 mb-3">Hola, {{ nombreUsuario }}!</h2>
@@ -118,7 +118,7 @@ app.component("base-layout", {
               <li class="nav-item dropdown ms-lg-3">
                 <div class="nav-link dropdown-toggle pt-1 px-0" role="button" data-bs-toggle="dropdown">
                   <div class="media d-flex align-items-center">
-                    <img class="avatar rounded-circle" src="assets/img/team/teamCorsec.jpg" alt="User">
+                    <img class="avatar rounded-circle" src="assets/img/team/team.jpg" alt="User">
                     <div class="media-body ms-2 text-dark align-items-center d-none d-lg-block">
                       <span class="mb-0 font-small fw-bold text-gray-900">{{ nombreUsuario }}</span>
                     </div>
@@ -189,10 +189,7 @@ app.component("base-layout", {
         'dashboard': 'Tablero Principal',
         'usuarios': 'Gestión de Usuarios',
         'chats': 'Chats',
-        'reportes': 'Reportes',
-        'conclusion': 'Conclusión',
-        'configuracion': 'Configuración',
-        'auditoria': 'Auditoría'
+        'configuracion': 'Configuración'
       };
       return titles[this.$route.name] || 'Dashboard';
     }
@@ -287,24 +284,6 @@ app.component("base-layout", {
           path: '/chats',
           label: 'Chats',
           icon: '<path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"></path><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9z" clip-rule="evenodd"></path>'
-        },
-        {
-          name: 'auditoria',
-          path: '/auditoria',
-          label: 'Auditoría',
-          icon: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>'
-        },
-        {
-          name: 'reportes',
-          path: '/reportes',
-          label: 'Reportes',
-          icon: '<path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z" clip-rule="evenodd"></path>'
-        },
-        {
-          name: 'conclusion',
-          path: '/conclusion',
-          label: 'Conclusión',
-          icon: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>'
         },
         {
           name: 'configuracion',

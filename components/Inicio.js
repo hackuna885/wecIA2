@@ -839,60 +839,6 @@ app.component("web-chats", {
   mounted() {}
 });
 
-// Componente de Auditoría
-app.component("web-auditoria", {
-  template: /*html*/ `
-  <base-layout>
-  </base-layout>
-  `,
-  data() {
-    return {
-      datos: "",
-
-    };
-  },
-  computed: {},
-  methods: {},
-  created() { },
-  mounted() { },
-});
-
-// Componente de Reportes
-app.component("web-reportes", {
-  template: /*html*/ `
-  <base-layout>
-  </base-layout>
-  `,
-  data() {
-    return {
-      datos: "",
-
-    };
-  },
-  computed: {},
-  methods: {},
-  created() { },
-  mounted() { },
-});
-
-// Componente de Conclusion
-app.component("web-conclusion", {
-  template: /*html*/ `
-  <base-layout>
-  </base-layout>
-  `,
-  data() {
-    return {
-      datos: "",
-
-    };
-  },
-  computed: {},
-  methods: {},
-  created() { },
-  mounted() { },
-});
-
 // Componente de Configuración
 app.component("web-configuracion", {
   template: /*html*/ `
