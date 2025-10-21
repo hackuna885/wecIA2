@@ -28,14 +28,14 @@ if ($maintenance_mode) {
 <meta property="og:url" content="https://corsec.tech/wecIA2">
 <meta property="og:title" content="WEC - IA">
 <meta property="og:description" content="IA que genera ideas, impulsa decisiones y transforma tu negocio..">
-<meta property="og:image" content="assets/img/wec.jpg">
+<meta property="og:image" content="https://corsec.tech/wecIA2/assets/img/wec.jpg">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://corsec.tech/wecIA2">
 <meta property="twitter:title" content="WEC - IA">
 <meta property="twitter:description" content="IA que genera ideas, impulsa decisiones y transforma tu negocio..">
-<meta property="twitter:image" content="assets/img/wec.jpg">
+<meta property="twitter:image" content="https://corsec.tech/wecIA2/assets/img/wec.jpg">
 
 <!-- Favicon -->
 <link rel="apple-touch-icon" sizes="120x120" href="assets/img/favicon/apple-touch-icon.png">
