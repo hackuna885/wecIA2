@@ -5,7 +5,7 @@ app.component("base-layout", {
   <!-- Mobile navbar -->
   <nav class="navbar navbar-dark navbar-theme-primary px-4 col-12 d-lg-none">
     <div class="navbar-brand me-lg-5">
-      <img class="navbar-brand-dark" src="assets/img/brand/light.svg" alt="Volt logo" />
+      <img class="navbar-brand-dark" src="assets/img/logo.svg" alt="Volt logo" />
     </div>
     <div class="d-flex align-items-center">
       <button class="navbar-toggler d-lg-none collapsed" type="button" data-bs-toggle="collapse"
@@ -45,9 +45,9 @@ app.component("base-layout", {
           <li class="nav-item">
             <div class="nav-link d-flex align-items-center">
               <span class="sidebar-icon">
-                <img src="assets/img/brand/light.svg" height="20" width="20" alt="Logo">
+                <img src="assets/img/logo.svg" height="60" width="60" alt="Logo">
               </span>
-              <span class="mt-1 ms-1 sidebar-text">{{ empresaUsuario || 'CORSEC-TECH' }}</span>
+              <span class="mt-1 ms-1 sidebar-text display-1">{{ empresaUsuario || 'IA' }}</span>
             </div>
           </li>
 
@@ -165,7 +165,7 @@ app.component("base-layout", {
       <footer class="bg-white rounded shadow p-5 mt-auto mb-3">
         <div class="row">
           <div class="col-12 col-md-4 col-xl-6 mb-0">
-            <p class="mb-0 text-center text-lg-start">© <span class="current-year"></span> Creado por CORSEC-TECH</p>
+            <p class="mb-0 text-center text-lg-start">© <span class="current-year"></span> Creado por WEC</p>
           </div>
         </div>
       </footer>
@@ -187,7 +187,7 @@ app.component("base-layout", {
     currentPageTitle() {
       const titles = {
         'dashboard': 'Tablero Principal',
-        'proveedores': 'Gestión de Proveedores',
+        'usuarios': 'Gestión de Usuarios',
         'chats': 'Chats',
         'reportes': 'Reportes',
         'conclusion': 'Conclusión',
@@ -277,9 +277,9 @@ app.component("base-layout", {
           icon: '<path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>'
         },
         {
-          name: 'proveedores',
-          path: '/proveedores',
-          label: 'Proveedores',
+          name: 'usuarios',
+          path: '/usuarios',
+          label: 'Usuarios',
           icon: '<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
         },
         {

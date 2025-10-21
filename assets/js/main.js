@@ -1,7 +1,7 @@
 const Inicio = { template: '<web-home></web-home>' }
 const Web_dashBoard = { template: '<web-dashBoard></web-dashBoard>' }
 const Web_chats = { template: '<web-chats></web-chats>' }
-const Web_proveedores = { template: '<web-proveedores></web-proveedores>' }
+const Web_usuarios = { template: '<web-usuarios></web-usuarios>' }
 const Web_reportes = { template: '<web-reportes></web-reportes>' }
 const Web_configuracion = { template: '<web-configuracion></web-configuracion>' }
 const Web_auditoria = { template: '<web-auditoria></web-auditoria>' }
@@ -20,9 +20,9 @@ const routes = [
     meta: { requiresAuth: true } 
   },
   { 
-    path: '/proveedores', 
-    name: 'proveedores',
-    component: Web_proveedores, 
+    path: '/usuarios', 
+    name: 'usuarios',
+    component: Web_usuarios, 
     meta: { requiresAuth: true } 
   },
   { 

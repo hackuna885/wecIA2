@@ -10,7 +10,7 @@ app.component("web-home", {
                   style="background-color: rgba(0, 0, 0, .5); width: 100%;">
                   <div class="row">
                     <div class="col-8 mx-auto">
-                      <img src="assets/img/logoCorsecTech.png" class="img-fluid my-3" alt="logo">
+                      <img src="assets/img/logo.svg" class="img-fluid my-3" alt="logo">
                     </div>
                   </div>
                   <div class="text-center text-md-center mb-4 mt-md-0">
@@ -73,7 +73,7 @@ app.component("web-home", {
                     </div>
                     <br>
                     <div class="d-grid">
-                      <button type="submit" class="btn btn-gray-800" :disabled="!formularioValido">Iniciar Sesión</button>
+                      <button type="submit" class="btn btn-gray-800 btn-lg" :disabled="!formularioValido">Iniciar Sesión</button>
                     </div>
                   </form>
         
@@ -264,133 +264,8 @@ app.component("web-home", {
 
 app.component("web-dashBoard", {
   template: /*html*/ `
-        <!-- Inicia Código -->
+      <!-- Inicia Código -->
       <base-layout>
-      <!-- Solo el contenido específico del dashboard -->
-      <div class="container-fluid">
-        <!-- Estadísticas -->
-        <div class="row">
-          <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-            <div class="card card-stats mb-4 mb-lg-0">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <h5 class="card-title text-uppercase text-muted mb-0">Proveedores</h5>
-                    <span class="h2 font-weight-bold mb-0">{{ stats.proveedores }}</span>
-                  </div>
-                  <div class="col-auto">
-                    <div class="icon icon-shape bg-primary text-white rounded-circle shadow">
-                      <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-            <div class="card card-stats mb-4 mb-lg-0">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <h5 class="card-title text-uppercase text-muted mb-0">Documentos</h5>
-                    <span class="h2 font-weight-bold mb-0">{{ stats.documentos }}</span>
-                  </div>
-                  <div class="col-auto">
-                    <div class="icon icon-shape bg-success text-white rounded-circle shadow">
-                      <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-            <div class="card card-stats mb-4 mb-lg-0">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <h5 class="card-title text-uppercase text-muted mb-0">Reportes</h5>
-                    <span class="h2 font-weight-bold mb-0">{{ stats.reportes }}</span>
-                  </div>
-                  <div class="col-auto">
-                    <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
-                      <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z" clip-rule="evenodd"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-xl-3 col-lg-6 col-md-6 col-sm-6">
-            <div class="card card-stats mb-4 mb-lg-0">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <h5 class="card-title text-uppercase text-muted mb-0">Usuarios</h5>
-                    <span class="h2 font-weight-bold mb-0">{{ stats.usuarios }}</span>
-                  </div>
-                  <div class="col-auto">
-                    <div class="icon icon-shape bg-info text-white rounded-circle shadow">
-                      <svg class="icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"></path>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Acciones rápidas -->
-        <div class="row mt-4">
-          <div class="col-12">
-            <div class="card border-0 shadow">
-              <div class="card-header">
-                <h5 class="mb-0">Acciones Rápidas</h5>
-              </div>
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-4">
-                    <router-link to="/proveedores" class="btn btn-outline-primary w-100 mb-2">
-                      <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"></path>
-                      </svg>
-                      Gestionar Proveedores
-                    </router-link>
-                  </div>
-                  <div class="col-md-4">
-                    <router-link to="/chats" class="btn btn-outline-success w-100 mb-2">
-                      <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path>
-                      </svg>
-                      Ver Chats
-                    </router-link>
-                  </div>
-                  <div class="col-md-4">
-                    <router-link to="/reportes" class="btn btn-outline-warning w-100 mb-2">
-                      <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z" clip-rule="evenodd"></path>
-                      </svg>
-                      Generar Reportes
-                    </router-link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       </base-layout>
 
         <!-- Termina Código -->
@@ -399,12 +274,7 @@ app.component("web-dashBoard", {
   `,
   data() {
     return {
-      stats: {
-        proveedores: 150,
-        documentos: 247,
-        reportes: 45,
-        usuarios: 12
-      }
+      
     };
   },
   computed: {},
@@ -414,7 +284,7 @@ app.component("web-dashBoard", {
 });
 
 // Componente de Proveedores
-app.component("web-proveedores", {
+app.component("web-usuarios", {
   template: /*html*/ `
   <base-layout>
   <div class="container-fluid">
@@ -424,15 +294,15 @@ app.component("web-proveedores", {
             <div class="card-header">
               <div class="row align-items-center">
                 <div class="col">
-                  <h2 class="h5">Gestión de Proveedores</h2>
-                  <p class="mb-0">Administra tu base de proveedores</p>
+                  <h2 class="h5">Gestión de Usuarios</h2>
+                  <p class="mb-0">Administra tu base de Usuarios</p>
                 </div>
                 <div class="col-auto">
                   <button class="btn btn-sm btn-primary" @click="agregarProveedor()">
                     <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
-                    Nuevo Proveedor
+                    Nuevo Usuario
                   </button>
                 </div>
               </div>
@@ -446,8 +316,8 @@ app.component("web-proveedores", {
                       <th class="border-0">Empresa</th>
                       <th class="border-0">Email</th>
                       <th class="border-0">Teléfono</th>
-                      <th class="border-0">Documentos</th>
-                      <th class="border-0">Estado Documentación</th>
+                      <th class="border-0">Estado</th>
+                      <th class="border-0">Editar/Eliminar</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -503,7 +373,7 @@ app.component("web-proveedores", {
     // Boton Alta
     async agregarProveedor() {
       const { value: formValues } = await Swal.fire({
-        title: 'Nuevo Proveedor',
+        title: 'Nuevo Usuario',
         html: /*html*/ `
                 <div class="row m-0 p-0">
                   <div class="form-group mb-3 col-md-12">
