@@ -843,7 +843,12 @@ app.component("web-chats", {
     
     abrirSelectorArchivos() {
       if (this.archivosSeleccionados.length >= 5) {
-        alert('Solo puedes subir un máximo de 5 archivos.');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Límite de archivos',
+          text: 'Solo puedes subir un máximo de 5 archivos.',
+          confirmButtonColor: '#10a37f'
+        });
         return;
       }
       this.$refs.archivoInput.click();
@@ -881,7 +886,12 @@ app.component("web-chats", {
       const espacioDisponible = 5 - this.archivosSeleccionados.length;
       
       if (espacioDisponible === 0) {
-        alert('Ya has alcanzado el límite de 5 archivos.');
+        Swal.fire({
+          icon: 'info',
+          title: 'Límite alcanzado',
+          text: 'Ya has alcanzado el límite de 5 archivos.',
+          confirmButtonColor: '#10a37f'
+        });
         return;
       }
       
@@ -889,7 +899,12 @@ app.component("web-chats", {
       const archivosAProcesar = archivos.slice(0, espacioDisponible);
       
       if (archivos.length > espacioDisponible) {
-        alert(`Solo se pueden agregar ${espacioDisponible} archivo(s) más. Se procesarán los primeros ${espacioDisponible}.`);
+        Swal.fire({
+          icon: 'info',
+          title: 'Archivos limitados',
+          text: `Solo se pueden agregar ${espacioDisponible} archivo(s) más. Se procesarán los primeros ${espacioDisponible}.`,
+          confirmButtonColor: '#10a37f'
+        });
       }
       
       archivosAProcesar.forEach(archivo => {
@@ -897,13 +912,23 @@ app.component("web-chats", {
         const extension = '.' + archivo.name.split('.').pop().toLowerCase();
         
         if (!tiposPermitidos.includes(archivo.type) && !extensionesPermitidas.includes(extension)) {
-          alert(`Archivo no permitido: ${archivo.name}. Formatos aceptados: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT.`);
+          Swal.fire({
+            icon: 'error',
+            title: 'Archivo no permitido',
+            text: `El archivo "${archivo.name}" no es válido. Formatos aceptados: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT.`,
+            confirmButtonColor: '#10a37f'
+          });
           return;
         }
         
         // Validar tamaño
         if (archivo.size > tamañoMaximo) {
-          alert(`El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`);
+          Swal.fire({
+            icon: 'warning',
+            title: 'Archivo demasiado grande',
+            text: `El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`,
+            confirmButtonColor: '#10a37f'
+          });
           return;
         }
         
@@ -966,7 +991,12 @@ app.component("web-chats", {
       if (!this.puedeEnviar) return;
       
       if (!this.consulta.trim()) {
-        alert('Por favor, escribe tu consulta.');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Consulta vacía',
+          text: 'Por favor, escribe tu consulta.',
+          confirmButtonColor: '#10a37f'
+        });
         return;
       }
       
@@ -1040,8 +1070,6 @@ app.component("web-chats", {
     });
   }
 });
-
-
 
 // Componente de Configuración
 app.component("web-configuracion", {

@@ -68,7 +68,7 @@ app.component("base-layout", {
           <!-- Logout -->
           <li class="nav-item">
             <router-link to="/" @click="logoutAndClose"
-              class="btn btn-secondary d-flex align-items-center justify-content-center btn-upgrade-pro">
+              class="btn btn-success d-flex align-items-center justify-content-center btn-upgrade-pro">
               <span class="sidebar-icon d-inline-flex align-items-center justify-content-center">
                 <svg class="icon icon-xxs me-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

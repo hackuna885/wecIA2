@@ -1,8 +1,0 @@
-[22-Oct-2025 12:17:33 America/Mexico_City] Error de la API de Gemini: La API de Gemini devolvió un error (HTTP 400). Mensaje: Unsupported MIME type: application/vnd.openxmlformats-officedocument.presentationml.presentation | Respuesta completa: {
-  "error": {
-    "code": 400,
-    "message": "Unsupported MIME type: application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "status": "INVALID_ARGUMENT"
-  }
-}
-
