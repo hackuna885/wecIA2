@@ -611,204 +611,380 @@ app.component("web-usuarios", {
 app.component("web-chats", {
   template: /*html*/ `
   <base-layout>
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-mb-10 mx-auto">
-          <div class="card border-0 shadow mb-4">
-            <div class="card-header">
-              <div class="row align-items-center">
-                <div class="col">
-                  <h2 class="h5">Consulta a WEC IA</h2>
-                  <p class="mb-0">Sube tu documento y realiza consultas inteligentes</p>
-                </div>
+    <!-- Contenedor principal con drag & drop en toda la pantalla -->
+    <div class="chat-container" 
+         :class="{ 'drag-over': isDragOver && archivosSeleccionados.length < 5 }"
+         @dragenter.prevent="handleDragEnter"
+         @dragover.prevent="handleDragOver"
+         @dragleave.prevent="handleDragLeave"
+         @drop.prevent="handleDrop">
+      
+      <!-- Área de contenido central -->
+      <div class="chat-content">
+        
+        <!-- Mensaje de bienvenida -->
+        <div class="welcome-section" v-if="archivosSeleccionados.length === 0 && !mostrarResultado">
+          <h1 class="welcome-title">Haz tu consulta</h1>
+          <p class="welcome-subtitle">Escribe tu pregunta o adjunta documentos para análisis</p>
+          
+          <div class="upload-hint">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+              </path>
+            </svg>
+            <p>Opcionalmente, arrastra hasta 5 archivos aquí</p>
+            <small>Formatos: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT</small>
+          </div>
+        </div>
+
+        <!-- Vista previa de documentos subidos -->
+        <div class="documents-preview" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
+          <h3 class="preview-title">Archivos seleccionados ({{ archivosSeleccionados.length }}/5)</h3>
+          
+          <div class="files-grid">
+            <div v-for="(archivo, index) in archivosSeleccionados" 
+                 :key="index" 
+                 class="file-card">
+              
+              <!-- Miniatura para imágenes -->
+              <div v-if="archivo.esImagen" class="file-thumbnail">
+                <img :src="archivo.vistaPreviaUrl" :alt="archivo.nombre" class="thumbnail-image">
               </div>
-            </div>
-            <div class="card-body">
-              <form @submit.prevent="enviarConsulta" enctype="multipart/form-data">
-                <div class="row">
-                  
-                  <!-- Zona de carga de archivo -->
-                  <div class="col-md-12 mb-4">
-                    <label class="form-label fw-bold">Seleccionar imagen (JPG, JPEG) o PDF:</label>
-                    <div class="border rounded p-4 text-center" 
-                         style="border: 2px dashed #dee2e6 !important; background-color: #f8f9fa; cursor: pointer; transition: all 0.3s ease;"
-                         @dragenter.prevent="resaltarZona"
-                         @dragover.prevent="resaltarZona"
-                         @dragleave.prevent="quitarResaltado"
-                         @drop.prevent="manejarArchivo"
-                         @click="$refs.archivoInput.click()">
-                      
-                      <svg class="mb-3" width="48" height="48" fill="none" stroke="#6c757d" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                      </svg>
-                      
-                      <p class="mb-1 fw-bold text-muted">Haz clic para seleccionar o arrastra tu archivo aquí</p>
-                      <p class="mb-0 small text-muted">Formatos permitidos: JPG, JPEG, PDF</p>
-                      
-                      <input type="file" 
-                             class="d-none" 
-                             ref="archivoInput"
-                             @change="mostrarVistaPrevia" 
-                             accept=".jpg, .jpeg, .pdf">
-                    </div>
-                  </div>
-
-                  <!-- Vista previa del documento -->
-                  <div class="col-md-12 mb-4" v-if="archivoSeleccionado">
-                    <div class="card border-0 shadow-sm">
-                      <div class="card-body text-center">
-                        <img v-if="esImagen" 
-                             :src="vistaPreviaUrl" 
-                             class="img-fluid rounded" 
-                             alt="Vista previa del documento" 
-                             style="max-height: 400px;">
-                        
-                        <p v-if="!esImagen" class="mb-0 fw-bold text-primary">
-                          📄 {{ nombreArchivo }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Campo de consulta -->
-                  <div class="col-md-12 mb-4">
-                    <label for="consulta" class="form-label fw-bold">Ingrese su consulta sobre el documento:</label>
-                    <textarea v-model="consulta" 
-                              class="form-control" 
-                              rows="6" 
-                              placeholder="Escribe tu consulta aquí..." 
-                              style="resize: vertical;"></textarea>
-                  </div>
-
-                  <!-- Botón de envío -->
-                  <div class="col-md-12 mb-3">
-                    <button type="submit" 
-                            class="btn btn-primary btn-lg w-100"
-                            :disabled="cargando">
-                      
-                      <span v-if="!cargando">
-                        <svg class="icon icon-xs me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle;">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                        Consultar
-                      </span>
-                      
-                      <span v-else>
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Espere, por favor...
-                      </span>
-                    </button>
-                  </div>
-
-                  <!-- Contenedor de resultados -->
-                  <div class="col-md-12" v-if="mostrarResultado">
-                    <div class="card border-0 shadow-sm">
-                      <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Resultado:</h5>
-                      </div>
-                      <div class="card-body">
-                        <div v-html="resultado" 
-                             class="mb-0" 
-                             style="white-space: normal; word-wrap: break-word; font-family: inherit; background-color: #f8f9fa; padding: 1rem; border-radius: 0.375rem;">
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                </div>
-              </form>
+              
+              <!-- Icono para otros tipos de archivo -->
+              <div v-else class="file-thumbnail file-icon-container">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                  </path>
+                </svg>
+                <span class="file-extension">{{ obtenerExtension(archivo.nombre) }}</span>
+              </div>
+              
+              <div class="file-info">
+                <p class="file-name" :title="archivo.nombre">{{ archivo.nombre }}</p>
+                <p class="file-size">{{ formatearTamano(archivo.tamano) }}</p>
+              </div>
+              
+              <button class="btn-remove-card" @click="eliminarArchivo(index)" type="button" title="Eliminar archivo">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+
+        <!-- Área de resultados -->
+        <div class="results-section" v-if="mostrarResultado">
+          <div class="message-container">
+            <!-- Consulta del usuario -->
+            <div class="message user-message">
+              <div class="message-content">
+                <div class="message-header">
+                  <strong>Tu consulta:</strong>
+                </div>
+                <p>{{ consulta }}</p>
+                <div class="message-files" v-if="archivosSeleccionados.length > 0">
+                  <div v-for="(archivo, index) in archivosSeleccionados" :key="index" class="message-file-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                      </path>
+                    </svg>
+                    <span>{{ archivo.nombre }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Respuesta del sistema -->
+            <div class="message assistant-message">
+              <div class="message-content">
+                <div class="message-header">
+                  <strong>Respuesta:</strong>
+                </div>
+                <div v-if="cargando" class="loading-indicator">
+                  <span class="spinner"></span>
+                  <span>Procesando tu consulta...</span>
+                </div>
+                <div v-else v-html="resultado" class="response-text"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón para nueva consulta -->
+          <div class="new-query-btn">
+            <button @click="nuevaConsulta" type="button" class="btn-secondary">
+              Nueva consulta
+            </button>
+          </div>
+        </div>
+
       </div>
+
+      <!-- Input fijo en la parte inferior -->
+      <div class="chat-input-wrapper">
+        <div class="chat-input-container">
+          <form @submit.prevent="enviarConsulta" class="input-form">
+            
+            <!-- Botón de adjuntar archivo -->
+            <button type="button" 
+                    class="btn-attach" 
+                    @click="abrirSelectorArchivos"
+                    :disabled="cargando || archivosSeleccionados.length >= 5"
+                    :title="archivosSeleccionados.length >= 5 ? 'Máximo 5 archivos' : 'Adjuntar archivo'">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                </path>
+              </svg>
+            </button>
+
+            <!-- Input de texto -->
+            <textarea v-model="consulta"
+                      ref="textareaInput"
+                      class="text-input"
+                      placeholder="Escribe tu consulta..."
+                      rows="1"
+                      @input="ajustarAlturaTextarea"
+                      @keydown.enter.exact.prevent="enviarConsulta"
+                      :disabled="cargando">
+            </textarea>
+
+            <!-- Botón de envío -->
+            <button type="submit" 
+                    class="btn-send" 
+                    :disabled="!puedeEnviar || cargando"
+                    title="Enviar consulta">
+              <svg v-if="!cargando" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8">
+                </path>
+              </svg>
+              <span v-else class="spinner-small"></span>
+            </button>
+
+            <!-- Input oculto para archivos -->
+            <input type="file" 
+                   ref="archivoInput"
+                   class="file-input-hidden"
+                   @change="manejarSeleccionArchivo"
+                   accept=".jpg,.jpeg,.png,.pdf,.docx,.doc,.txt,.xlsx,.xls,.csv,.pptx,.ppt"
+                   multiple>
+          </form>
+
+          <!-- Indicador de archivos adjuntos -->
+          <div class="file-indicator" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
+            <span class="file-count-badge">
+              📎 {{ archivosSeleccionados.length }} archivo{{ archivosSeleccionados.length > 1 ? 's' : '' }} adjunto{{ archivosSeleccionados.length > 1 ? 's' : '' }}
+            </span>
+            <button @click="limpiarArchivos" type="button" class="btn-clear-all">
+              Limpiar todos
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </base-layout>
   `,
   
-  // AQUÍ GUARDAMOS LOS DATOS
+  // Estado del componente
   data() {
     return {
-      archivoSeleccionado: null,
-      vistaPreviaUrl: '',
-      nombreArchivo: '',
-      esImagen: false,
+      archivosSeleccionados: [],
       consulta: '',
       resultado: '',
       mostrarResultado: false,
-      cargando: false
+      cargando: false,
+      isDragOver: false
     };
   },
   
-  // AQUÍ VAN LAS FUNCIONES
+  // Propiedades computadas
+  computed: {
+    puedeEnviar() {
+      return this.consulta.trim().length >= 1 && !this.cargando;
+    }
+  },
+  
+  // Métodos del componente
   methods: {
-    // Cuando arrastras un archivo sobre la zona
-    resaltarZona(evento) {
-      evento.target.style.borderColor = '#0d6efd';
-      evento.target.style.backgroundColor = '#e7f1ff';
+    // ========== Gestión de Drag & Drop ==========
+    
+    handleDragEnter(evento) {
+      if (this.cargando || this.archivosSeleccionados.length >= 5) return;
+      this.isDragOver = true;
     },
     
-    // Cuando quitas el archivo de la zona
-    quitarResaltado(evento) {
-      evento.target.style.borderColor = '#dee2e6';
-      evento.target.style.backgroundColor = '#f8f9fa';
+    handleDragOver(evento) {
+      if (this.cargando || this.archivosSeleccionados.length >= 5) return;
+      this.isDragOver = true;
     },
     
-    // Cuando sueltas el archivo en la zona
-    manejarArchivo(evento) {
-      this.quitarResaltado(evento);
-      const archivos = evento.dataTransfer.files;
-      
-      if (archivos.length > 0) {
-        this.$refs.archivoInput.files = archivos;
-        this.mostrarVistaPrevia();
+    handleDragLeave(evento) {
+      if (evento.target === evento.currentTarget) {
+        this.isDragOver = false;
       }
     },
     
-    // Mostrar la imagen o nombre del PDF
-    mostrarVistaPrevia() {
-      const archivo = this.$refs.archivoInput.files[0];
+    handleDrop(evento) {
+      this.isDragOver = false;
       
-      if (!archivo) return;
+      if (this.cargando) return;
       
-      this.archivoSeleccionado = archivo;
-      this.nombreArchivo = archivo.name;
-      this.consulta = '';
-      this.resultado = '';
-      this.mostrarResultado = false;
+      const archivos = Array.from(evento.dataTransfer.files);
+      this.procesarArchivos(archivos);
+    },
+    
+    // ========== Gestión de archivos ==========
+    
+    abrirSelectorArchivos() {
+      if (this.archivosSeleccionados.length >= 5) {
+        alert('Solo puedes subir un máximo de 5 archivos.');
+        return;
+      }
+      this.$refs.archivoInput.click();
+    },
+    
+    manejarSeleccionArchivo(evento) {
+      const archivos = Array.from(evento.target.files);
+      this.procesarArchivos(archivos);
+      // Limpiar el input para permitir seleccionar el mismo archivo nuevamente
+      evento.target.value = '';
+    },
+    
+    procesarArchivos(archivos) {
+      // Tipos de archivo permitidos
+      const tiposPermitidos = [
+        'image/jpeg',
+        'image/png',
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+        'text/plain',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'text/csv',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.ms-powerpoint'
+      ];
       
-      // Si es imagen, mostrar vista previa
-      if (archivo.type === 'image/jpeg' || archivo.type === 'image/png') {
-        this.esImagen = true;
-        const lector = new FileReader();
-        lector.onload = (e) => {
-          this.vistaPreviaUrl = e.target.result;
+      // Extensiones permitidas (fallback)
+      const extensionesPermitidas = ['.jpg', '.jpeg', '.png', '.pdf', '.docx', '.doc', '.txt', '.xlsx', '.xls', '.csv', '.pptx', '.ppt'];
+      
+      const tamañoMaximo = 10 * 1024 * 1024; // 10MB
+      
+      // Calcular cuántos archivos más se pueden agregar
+      const espacioDisponible = 5 - this.archivosSeleccionados.length;
+      
+      if (espacioDisponible === 0) {
+        alert('Ya has alcanzado el límite de 5 archivos.');
+        return;
+      }
+      
+      // Limitar la cantidad de archivos a procesar
+      const archivosAProcesar = archivos.slice(0, espacioDisponible);
+      
+      if (archivos.length > espacioDisponible) {
+        alert(`Solo se pueden agregar ${espacioDisponible} archivo(s) más. Se procesarán los primeros ${espacioDisponible}.`);
+      }
+      
+      archivosAProcesar.forEach(archivo => {
+        // Validar tipo de archivo
+        const extension = '.' + archivo.name.split('.').pop().toLowerCase();
+        
+        if (!tiposPermitidos.includes(archivo.type) && !extensionesPermitidas.includes(extension)) {
+          alert(`Archivo no permitido: ${archivo.name}. Formatos aceptados: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT.`);
+          return;
+        }
+        
+        // Validar tamaño
+        if (archivo.size > tamañoMaximo) {
+          alert(`El archivo "${archivo.name}" excede el tamaño máximo de 10MB.`);
+          return;
+        }
+        
+        // Crear objeto de archivo
+        const archivoData = {
+          archivo: archivo,
+          nombre: archivo.name,
+          tamano: archivo.size,
+          esImagen: archivo.type.startsWith('image/'),
+          vistaPreviaUrl: ''
         };
-        lector.readAsDataURL(archivo);
-      } else {
-        // Si es PDF, solo mostrar el nombre
-        this.esImagen = false;
-      }
+        
+        // Generar vista previa para imágenes
+        if (archivoData.esImagen) {
+          const lector = new FileReader();
+          lector.onload = (e) => {
+            archivoData.vistaPreviaUrl = e.target.result;
+          };
+          lector.readAsDataURL(archivo);
+        }
+        
+        this.archivosSeleccionados.push(archivoData);
+      });
     },
     
-    // Enviar el formulario
+    eliminarArchivo(index) {
+      this.archivosSeleccionados.splice(index, 1);
+    },
+    
+    limpiarArchivos() {
+      this.archivosSeleccionados = [];
+      this.$refs.archivoInput.value = '';
+    },
+    
+    // ========== Utilidades ==========
+    
+    obtenerExtension(nombreArchivo) {
+      return nombreArchivo.split('.').pop().toUpperCase();
+    },
+    
+    formatearTamano(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    },
+    
+    // ========== Gestión del textarea ==========
+    
+    ajustarAlturaTextarea(evento) {
+      const textarea = evento.target;
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    },
+    
+    // ========== Envío de consulta ==========
+    
     async enviarConsulta() {
-      // Validaciones
+      if (!this.puedeEnviar) return;
+      
       if (!this.consulta.trim()) {
-        alert('Por favor, ingrese su consulta sobre el documento.');
+        alert('Por favor, escribe tu consulta.');
         return;
       }
       
       this.cargando = true;
-      this.resultado = 'Cargando...';
       this.mostrarResultado = true;
+      this.resultado = '';
       
-      // Preparar datos para enviar
+      // Preparar FormData
       const datosFormulario = new FormData();
-      datosFormulario.append('consulta', this.consulta);
-      datosFormulario.append('documento', this.archivoSeleccionado);
+      datosFormulario.append('consulta', this.consulta.trim());
+      
+      // Agregar todos los archivos como array
+      this.archivosSeleccionados.forEach((archivoData) => {
+        datosFormulario.append('documentos[]', archivoData.archivo);
+      });
       
       try {
-        // Enviar a tu servidor PHP
+        // Realizar petición al backend
         const respuesta = await fetch('../wecIA2/chats/chats.app', {
           method: 'POST',
           body: datosFormulario
@@ -820,24 +996,52 @@ app.component("web-chats", {
         
         const data = await respuesta.json();
         
-        // Limpiar el HTML de la respuesta
-        let htmlLimpio = data.mensaje;
+        // Verificar si hay error en la respuesta
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        
+        // Limpiar HTML de la respuesta
+        let htmlLimpio = data.mensaje || 'No se recibió respuesta del servidor.';
         htmlLimpio = htmlLimpio.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
         
         this.resultado = htmlLimpio;
         
       } catch (error) {
-        console.error('Error:', error);
-        this.resultado = `Error: No se pudo procesar la consulta. (${error.message})`;
+        console.error('Error al procesar la consulta:', error);
+        this.resultado = `<p style="color: #dc3545;">Error: ${error.message}</p>`;
       } finally {
         this.cargando = false;
       }
+    },
+    
+    nuevaConsulta() {
+      this.consulta = '';
+      this.resultado = '';
+      this.mostrarResultado = false;
+      this.limpiarArchivos();
+      
+      // Resetear altura del textarea
+      this.$nextTick(() => {
+        if (this.$refs.textareaInput) {
+          this.$refs.textareaInput.style.height = 'auto';
+        }
+      });
     }
   },
   
-  created() {},
-  mounted() {}
+  // Hooks del ciclo de vida
+  mounted() {
+    // Enfocar el textarea al montar el componente
+    this.$nextTick(() => {
+      if (this.$refs.textareaInput) {
+        this.$refs.textareaInput.focus();
+      }
+    });
+  }
 });
+
+
 
 // Componente de Configuración
 app.component("web-configuracion", {
