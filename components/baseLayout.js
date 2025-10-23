@@ -28,7 +28,8 @@ app.component("base-layout", {
         </div>
 
         <!-- User card for mobile -->
-        <div class="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
+        <div
+          class="user-card d-flex d-md-none align-items-center justify-content-between justify-content-md-center pb-4">
           <div class="d-flex align-items-center">
             <div class="avatar-lg me-4">
               <img src="assets/img/team/team.jpg" class="card-img-top rounded-circle border-white" alt="Admin">
@@ -52,9 +53,7 @@ app.component("base-layout", {
           </li>
 
           <!-- Menú dinámico basado en permisos -->
-          <li v-for="item in menuItems" :key="item.name" 
-              class="nav-item" 
-              :class="{ active: isActiveRoute(item.name) }">
+          <li v-for="item in menuItems" :key="item.name" class="nav-item" :class="{ active: isActiveRoute(item.name) }">
             <router-link :to="item.path" class="nav-link" @click="closeMobileMenu">
               <span class="sidebar-icon">
                 <svg class="icon icon-xs me-2" fill="currentColor" viewBox="0 0 20 20" v-html="item.icon"></svg>
@@ -63,7 +62,102 @@ app.component("base-layout", {
             </router-link>
           </li>
 
+          <!-- SECCIÓN DE HISTORIAL DE CHATS (solo visible en ruta de chats) -->
+          <template v-if="isActiveRoute('chats')">
+            <li role="separator" class="dropdown-divider mt-4 mb-3 border-gray-700"></li>
+
+            <!-- Header de historial -->
+            <li class="nav-item">
+              <div class="d-flex align-items-center justify-content-between px-3 mb-2">
+                <span class="sidebar-text small text-gray-400">HISTORIAL</span>
+                <button @click="nuevaConversacionChat" class="btn btn-sm btn-success"
+                  style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Nueva conversación">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                </button>
+              </div>
+            </li>
+
+            <!-- Loading del historial -->
+            <li v-if="cargandoHistorial" class="nav-item">
+              <div class="text-center py-3">
+                <div class="spinner-border spinner-border-sm text-success" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="small text-gray-400 mt-2">Cargando historial...</p>
+              </div>
+            </li>
+
+            <!-- Sin conversaciones -->
+            <li v-else-if="conversaciones.length === 0" class="nav-item">
+              <div class="text-center py-3">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="text-gray-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
+                  </path>
+                </svg>
+                <p class="small text-gray-400 mt-2 mb-0">No hay conversaciones</p>
+              </div>
+            </li>
+
+            <!-- Lista de conversaciones -->
+            <template v-else>
+              <li v-for="conv in conversaciones" :key="conv.id" class="nav-item conversacion-item-sidebar"
+                :class="{ 'conversacion-activa': conv.id === conversacionActivaId }">
+
+                <div class="nav-link conversacion-link" @click="seleccionarConversacionChat(conv.id)"
+                  style="cursor: pointer; padding: 0.5rem 0.75rem;">
+
+                  <div class="d-flex flex-column">
+                    <span class="sidebar-text text-truncate" style="font-size: 0.85rem;">
+                      {{ conv.titulo }}
+                    </span>
+                    <small class="text-gray-500" style="font-size: 0.7rem;">
+                      {{ formatearFechaChat(conv.fecha_actualizacion) }} · {{ conv.total_mensajes }} msg
+                    </small>
+                  </div>
+
+                  <!-- Botones de acción -->
+                  <div class="conversacion-acciones-sidebar">
+                    <!-- Renombrar (solo Admin) -->
+                    <button v-if="esAdministrador" @click.stop="editarTituloChat(conv)" class="btn btn-sm btn-link text-gray-400 p-0 me-1"
+                      title="Renombrar">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                        </path>
+                      </svg>
+                    </button>
+                  
+                    <!-- Exportar (solo Admin) -->
+                    <button v-if="esAdministrador" @click.stop="mostrarMenuExportarChat(conv.id)"
+                      class="btn btn-sm btn-link text-gray-400 p-0 me-1" title="Exportar">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                        </path>
+                      </svg>
+                    </button>
+                  
+                    <!-- Eliminar (PARA TODOS) -->
+                    <button @click.stop="eliminarConversacionChat(conv.id)" class="btn btn-sm btn-link text-danger p-0" title="Eliminar">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
+              </li>
+            </template>
+          </template>
+
           <li role="separator" class="dropdown-divider mt-4 mb-3 border-gray-700"></li>
+
+
 
           <!-- Logout -->
           <li class="nav-item">
@@ -170,6 +264,47 @@ app.component("base-layout", {
         </div>
       </footer>
     </main>
+    <!-- Modal de exportación -->
+    <div v-if="menuExportarVisible" class="modal fade show d-block" tabindex="-1"
+      style="background-color: rgba(0,0,0,0.5);" @click="cerrarMenuExportarChat">
+      <div class="modal-dialog modal-dialog-centered" @click.stop>
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Exportar conversación</h5>
+            <button type="button" class="btn-close" @click="cerrarMenuExportarChat"></button>
+          </div>
+          <div class="modal-body">
+            <p>Selecciona el formato de exportación:</p>
+            <div class="d-grid gap-2">
+              <button @click="exportarChat('json')" class="btn btn-outline-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-2">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                  </path>
+                </svg>
+                JSON
+              </button>
+              <button @click="exportarChat('txt')" class="btn btn-outline-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-2">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                  </path>
+                </svg>
+                TXT
+              </button>
+              <button @click="exportarChat('pdf')" class="btn btn-outline-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-2">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                  </path>
+                </svg>
+                PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 `,
@@ -180,10 +315,19 @@ app.component("base-layout", {
       nombreUsuario: 'Usuario',
       empresaUsuario: '',
       correoUsuario: '',
-      rolUsuario: 'Usuario'
+      rolUsuario: 'Usuario',
+      conversaciones: [],
+      conversacionActivaId: null,
+      cargandoHistorial: false,
+      menuExportarVisible: false,
+      conversacionParaExportar: null,
+      intervalHistorial: null
     };
   },
   computed: {
+    esAdministrador() {
+      return this.rolUsuario === 'Administrador';
+    },
     currentPageTitle() {
       const titles = {
         'dashboard': 'Tablero Principal',
@@ -202,12 +346,12 @@ app.component("base-layout", {
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('userToken');
       localStorage.removeItem('userInfo');
-      
+
       // Si existe userPermissions, usarlo
       if (typeof userPermissions !== 'undefined') {
         userPermissions.clearUserData();
       }
-      
+
       this.$router.push('/');
     },
     logoutAndClose() {
@@ -222,37 +366,28 @@ app.component("base-layout", {
       if (window.innerWidth < 992) {
         const sidebarMenu = document.getElementById('sidebarMenu');
         if (sidebarMenu && sidebarMenu.classList.contains('show')) {
-          const bsCollapse = bootstrap.Collapse.getInstance(sidebarMenu) || 
-                            new bootstrap.Collapse(sidebarMenu, {toggle: false});
+          const bsCollapse = bootstrap.Collapse.getInstance(sidebarMenu) ||
+            new bootstrap.Collapse(sidebarMenu, { toggle: false });
           bsCollapse.hide();
         }
       }
     },
     loadUserInfo() {
-      // Intentar cargar información del usuario desde localStorage
-      const userInfo = localStorage.getItem('userInfo');
       const userData = localStorage.getItem('userData');
-      
-      if (userInfo) {
+      const userEmail = localStorage.getItem('userEmail');
+
+      if (userData) {
         try {
-          const info = JSON.parse(userInfo);
+          const info = JSON.parse(userData);
           this.nombreUsuario = info.nombre || 'Usuario';
           this.empresaUsuario = info.nomEmpresa || '';
-          this.correoUsuario = info.correo || '';
+          this.correoUsuario = info.correo || userEmail || '';
           this.rolUsuario = this.getRoleName(info.rol);
         } catch (e) {
           console.error('Error al cargar información del usuario:', e);
         }
-      } else if (userData) {
-        try {
-          const data = JSON.parse(userData);
-          this.nombreUsuario = data.nombre || 'Usuario';
-          this.empresaUsuario = data.nomEmpresa || '';
-          this.correoUsuario = data.correo || '';
-          this.rolUsuario = this.getRoleName(data.rol);
-        } catch (e) {
-          console.error('Error al cargar datos del usuario:', e);
-        }
+      } else if (userEmail) {
+        this.correoUsuario = userEmail;
       }
     },
     getRoleName(rol) {
@@ -292,7 +427,7 @@ app.component("base-layout", {
           icon: '<path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>'
         }
       ];
-      
+
       // Si existe sistema de permisos, filtrar según permisos
       if (typeof userPermissions !== 'undefined' && userPermissions.user) {
         const allowedRoutes = userPermissions.getAllowedRoutes();
@@ -301,12 +436,236 @@ app.component("base-layout", {
         // Sin sistema de permisos, mostrar todo el menú
         this.menuItems = fullMenu;
       }
-    }
+    },
+    /**
+   * Cargar conversaciones del usuario desde la API
+   */
+    async cargarConversacionesChat() {
+      if (!this.correoUsuario || !this.isActiveRoute('chats')) return;
+
+      this.cargandoHistorial = true;
+
+      try {
+        const respuesta = await fetch(
+          `../wecIA2/conversaciones/conversaciones.app?action=listar&usuario_email=${encodeURIComponent(this.correoUsuario)}`
+        );
+
+        if (!respuesta.ok) {
+          throw new Error('Error al cargar conversaciones');
+        }
+
+        const data = await respuesta.json();
+        this.conversaciones = data.conversaciones || [];
+
+      } catch (error) {
+        console.error('Error al cargar conversaciones:', error);
+      } finally {
+        this.cargandoHistorial = false;
+      }
+    },
+
+    /**
+     * Iniciar nueva conversación
+     */
+    nuevaConversacionChat() {
+      this.conversacionActivaId = null;
+      // Emitir evento para que el componente de chat lo capture
+      window.dispatchEvent(new CustomEvent('nueva-conversacion-chat'));
+    },
+
+    /**
+     * Seleccionar una conversación existente
+     */
+    seleccionarConversacionChat(id) {
+      this.conversacionActivaId = id;
+      // Emitir evento para que el componente de chat lo capture
+      window.dispatchEvent(new CustomEvent('seleccionar-conversacion-chat', { detail: { id } }));
+    },
+
+    /**
+     * Editar título de conversación (solo Admin)
+     */
+    async editarTituloChat(conversacion) {
+      const { value: nuevoTitulo } = await Swal.fire({
+        title: 'Renombrar conversación',
+        input: 'text',
+        inputValue: conversacion.titulo,
+        inputPlaceholder: 'Escribe el nuevo título',
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#10a37f',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'El título no puede estar vacío';
+          }
+        }
+      });
+
+      if (nuevoTitulo) {
+        try {
+          const respuesta = await fetch('../wecIA2/conversaciones/conversaciones.app?action=actualizar', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              id: conversacion.id,
+              titulo: nuevoTitulo
+            })
+          });
+
+          if (!respuesta.ok) {
+            throw new Error('Error al actualizar');
+          }
+
+          await this.cargarConversacionesChat();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Actualizado',
+            text: 'Título actualizado correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo actualizar el título',
+            confirmButtonColor: '#10a37f'
+          });
+        }
+      }
+    },
+
+    /**
+     * Eliminar conversación
+     */
+    async eliminarConversacionChat(id) {
+      const resultado = await Swal.fire({
+        title: '¿Eliminar conversación?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6e6e80'
+      });
+
+      if (resultado.isConfirmed) {
+        try {
+          const respuesta = await fetch(
+            `../wecIA2/conversaciones/conversaciones.app?action=eliminar&id=${id}`,
+            { method: 'DELETE' }
+          );
+
+          if (!respuesta.ok) {
+            throw new Error('Error al eliminar');
+          }
+
+          if (this.conversacionActivaId === id) {
+            this.conversacionActivaId = null;
+            window.dispatchEvent(new CustomEvent('conversacion-eliminada-chat'));
+          }
+
+          await this.cargarConversacionesChat();
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Eliminada',
+            text: 'Conversación eliminada correctamente',
+            timer: 2000,
+            showConfirmButton: false
+          });
+
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo eliminar la conversación',
+            confirmButtonColor: '#10a37f'
+          });
+        }
+      }
+    },
+
+    /**
+     * Mostrar modal de exportación
+     */
+    mostrarMenuExportarChat(id) {
+      this.conversacionParaExportar = id;
+      this.menuExportarVisible = true;
+    },
+
+    /**
+     * Cerrar modal de exportación
+     */
+    cerrarMenuExportarChat() {
+      this.menuExportarVisible = false;
+      this.conversacionParaExportar = null;
+    },
+
+    /**
+     * Exportar conversación en formato seleccionado
+     */
+    async exportarChat(formato) {
+      const url = `../wecIA2/exportar/exportar.app?formato=${formato}&conversacion_id=${this.conversacionParaExportar}&rol_usuario=${encodeURIComponent(this.rolUsuario)}`;
+
+      window.open(url, '_blank');
+
+      this.cerrarMenuExportarChat();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Exportando',
+        text: 'La descarga comenzará en breve',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    },
+
+    /**
+     * Formatear fecha para mostrar en el historial
+     */
+    formatearFechaChat(fecha) {
+      const date = new Date(fecha);
+      const ahora = new Date();
+      const diff = ahora - date;
+      const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      if (dias === 0) return 'Hoy';
+      if (dias === 1) return 'Ayer';
+      if (dias < 7) return `Hace ${dias} días`;
+
+      return date.toLocaleDateString('es-MX', {
+        day: 'numeric',
+        month: 'short'
+      });
+    },
+
+    /**
+     * Método público para actualizar historial desde componente de chat
+     */
+    actualizarHistorial() {
+      this.cargarConversacionesChat();
+    },
+
+    /**
+     * Método público para establecer conversación activa
+     */
+    setConversacionActiva(id) {
+      this.conversacionActivaId = id;
+    },
   },
   created() {
     // Cargar información del usuario
     this.loadUserInfo();
-    
+
     // Generar menú según permisos
     this.generateMenu();
   },
@@ -316,17 +675,59 @@ app.component("base-layout", {
     dropdowns.forEach(dropdownEl => {
       new bootstrap.Dropdown(dropdownEl);
     });
-    
+
     // Añadir el año actual al footer
     const currentYearElements = this.$el.querySelectorAll('.current-year');
     currentYearElements.forEach(element => {
       element.textContent = new Date().getFullYear();
     });
+
+    // ===== CÓDIGO NUEVO para historial de chats =====
+    // Cargar historial de chats si estamos en la ruta de chats
+    if (this.isActiveRoute('chats')) {
+      this.cargarConversacionesChat();
+
+      // Actualizar cada 30 segundos
+      this.intervalHistorial = setInterval(() => {
+        if (this.isActiveRoute('chats')) {
+          this.cargarConversacionesChat();
+        }
+      }, 30000);
+    }
   },
+
+  beforeUnmount() {
+    // Limpiar interval cuando se destruye el componente
+    if (this.intervalHistorial) {
+      clearInterval(this.intervalHistorial);
+    }
+  },
+
   watch: {
-    // Observar cambios en la ruta para actualizar información si es necesario
-    '$route': function() {
+    '$route': function (to, from) {
+      // ===== Código ORIGINAL (mantener) =====
       this.loadUserInfo();
+
+      // ===== CÓDIGO NUEVO para gestionar historial =====
+      // Cargar historial cuando se navega a chats
+      if (to.name === 'chats') {
+        this.cargarConversacionesChat();
+
+        // Iniciar auto-refresh si no está activo
+        if (!this.intervalHistorial) {
+          this.intervalHistorial = setInterval(() => {
+            if (this.isActiveRoute('chats')) {
+              this.cargarConversacionesChat();
+            }
+          }, 30000);
+        }
+      } else {
+        // Limpiar interval cuando se sale de chats
+        if (this.intervalHistorial) {
+          clearInterval(this.intervalHistorial);
+          this.intervalHistorial = null;
+        }
+      }
     }
   }
 });

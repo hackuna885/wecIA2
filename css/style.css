@@ -1450,5 +1450,64 @@ textarea:focus-visible {
 
   .file-thumbnail {
     height: 100px; } }
+/* Estilos para items de conversación en sidebar */
+.conversacion-item-sidebar {
+  margin-bottom: 0.25rem; }
+
+.conversacion-link {
+  position: relative;
+  border-radius: 0.5rem;
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease; }
+
+.conversacion-link:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important; }
+
+.conversacion-activa .conversacion-link {
+  background-color: rgba(16, 163, 127, 0.2) !important;
+  border-left: 3px solid #10a37f; }
+
+/* Botones de acción que aparecen al hacer hover */
+.conversacion-acciones-sidebar {
+  display: none;
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+          transform: translateY(-50%);
+  background-color: rgba(45, 55, 72, 0.95);
+  padding: 0.25rem;
+  border-radius: 0.25rem; }
+
+.conversacion-link:hover .conversacion-acciones-sidebar {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  gap: 0.25rem; }
+
+/* Colores adicionales */
+.text-gray-500 {
+  color: #a0aec0; }
+
+.text-gray-600 {
+  color: #718096; }
+
+/* Scrollbar personalizado para lista de conversaciones */
+.sidebar-inner {
+  overflow-y: auto;
+  max-height: calc(100vh - 100px); }
+
+.sidebar-inner::-webkit-scrollbar {
+  width: 6px; }
+
+.sidebar-inner::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05); }
+
+.sidebar-inner::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px; }
+
+.sidebar-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3); }
 
 /*# sourceMappingURL=style.css.map */

@@ -274,7 +274,7 @@ app.component("web-dashBoard", {
   `,
   data() {
     return {
-      
+
     };
   },
   computed: {},
@@ -611,190 +611,218 @@ app.component("web-usuarios", {
 app.component("web-chats", {
   template: /*html*/ `
   <base-layout>
-    <!-- Contenedor principal con drag & drop en toda la pantalla -->
-    <div class="chat-container" 
-         :class="{ 'drag-over': isDragOver && archivosSeleccionados.length < 5 }"
-         @dragenter.prevent="handleDragEnter"
-         @dragover.prevent="handleDragOver"
-         @dragleave.prevent="handleDragLeave"
-         @drop.prevent="handleDrop">
+    <div class="chat-wrapper">
       
-      <!-- Área de contenido central -->
-      <div class="chat-content">
+      <!-- Sidebar de historial -->
+      <chat-sidebar 
+        :usuario-email="usuarioEmail"
+        :rol-usuario="rolUsuario"
+        @nueva-conversacion="iniciarNuevaConversacion"
+        @seleccionar-conversacion="cargarConversacion"
+        @conversacion-eliminada="limpiarChat"
+        ref="sidebar">
+      </chat-sidebar>
+
+      <!-- Contenedor principal con drag & drop -->
+      <div class="chat-container" 
+           :class="{ 'drag-over': isDragOver && archivosSeleccionados.length < 5 }"
+           @dragenter.prevent="handleDragEnter"
+           @dragover.prevent="handleDragOver"
+           @dragleave.prevent="handleDragLeave"
+           @drop.prevent="handleDrop">
         
-        <!-- Mensaje de bienvenida -->
-        <div class="welcome-section" v-if="archivosSeleccionados.length === 0 && !mostrarResultado">
-          <h1 class="welcome-title">Haz tu consulta</h1>
-          <p class="welcome-subtitle">Escribe tu pregunta o adjunta documentos para análisis</p>
+        <!-- Área de contenido central -->
+        <div class="chat-content">
           
-          <div class="upload-hint">
-            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
-              </path>
-            </svg>
-            <p>Opcionalmente, arrastra hasta 5 archivos aquí</p>
-            <small>Formatos: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT</small>
+          <!-- Mensaje de bienvenida -->
+          <div class="welcome-section" v-if="archivosSeleccionados.length === 0 && !mostrarResultado">
+            <h1 class="welcome-title">Haz tu consulta</h1>
+            <p class="welcome-subtitle">Escribe tu pregunta o adjunta documentos para análisis</p>
+            
+            <div class="upload-hint">
+              <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                </path>
+              </svg>
+              <p>Opcionalmente, arrastra hasta 5 archivos aquí</p>
+              <small>Formatos: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT</small>
+            </div>
           </div>
+
+          <!-- Vista previa de documentos subidos -->
+          <div class="documents-preview" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
+            <h3 class="preview-title">Archivos seleccionados ({{ archivosSeleccionados.length }}/5)</h3>
+            
+            <div class="files-grid">
+              <div v-for="(archivo, index) in archivosSeleccionados" 
+                   :key="index" 
+                   class="file-card">
+                
+                <div v-if="archivo.esImagen" class="file-thumbnail">
+                  <img :src="archivo.vistaPreviaUrl" :alt="archivo.nombre" class="thumbnail-image">
+                </div>
+                
+                <div v-else class="file-thumbnail file-icon-container">
+                  <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                    </path>
+                  </svg>
+                  <span class="file-extension">{{ obtenerExtension(archivo.nombre) }}</span>
+                </div>
+                
+                <div class="file-info">
+                  <p class="file-name" :title="archivo.nombre">{{ archivo.nombre }}</p>
+                  <p class="file-size">{{ formatearTamano(archivo.tamano) }}</p>
+                </div>
+                
+                <button class="btn-remove-card" @click="eliminarArchivo(index)" type="button">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Área de resultados -->
+          <div class="results-section" v-if="mostrarResultado">
+            <div class="message-container">
+              <div v-for="(mensaje, index) in mensajesConversacion" :key="index">
+                <!-- Mensaje del usuario -->
+                <div v-if="mensaje.rol === 'user'" class="message user-message">
+                  <div class="message-content">
+                    <div class="message-header">
+                      <strong>Tu consulta:</strong>
+                    </div>
+                    <p>{{ mensaje.contenido }}</p>
+                    <div class="message-files" v-if="mensaje.archivos && mensaje.archivos.length > 0">
+                      <div v-for="archivo in mensaje.archivos" :key="archivo.id" class="message-file-item">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                          </path>
+                        </svg>
+                        <span>{{ archivo.nombre_original }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Respuesta del asistente -->
+                <div v-else class="message assistant-message">
+                  <div class="message-content">
+                    <div class="message-header">
+                      <strong>Respuesta:</strong>
+                    </div>
+                    <div v-html="mensaje.contenido" class="response-text"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Indicador de carga -->
+              <div v-if="cargando" class="message assistant-message">
+                <div class="message-content">
+                  <div class="loading-indicator">
+                    <span class="spinner"></span>
+                    <span>Procesando tu consulta...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Vista previa de documentos subidos -->
-        <div class="documents-preview" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
-          <h3 class="preview-title">Archivos seleccionados ({{ archivosSeleccionados.length }}/5)</h3>
-          
-          <div class="files-grid">
-            <div v-for="(archivo, index) in archivosSeleccionados" 
-                 :key="index" 
-                 class="file-card">
+        <!-- Input fijo en la parte inferior -->
+        <div class="chat-input-wrapper">
+          <div class="chat-input-container">
+            <form @submit.prevent="enviarConsulta" class="input-form">
               
-              <!-- Miniatura para imágenes -->
-              <div v-if="archivo.esImagen" class="file-thumbnail">
-                <img :src="archivo.vistaPreviaUrl" :alt="archivo.nombre" class="thumbnail-image">
-              </div>
-              
-              <!-- Icono para otros tipos de archivo -->
-              <div v-else class="file-thumbnail file-icon-container">
-                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button type="button" 
+                      class="btn-attach" 
+                      @click="abrirSelectorArchivos"
+                      :disabled="cargando || archivosSeleccionados.length >= 5"
+                      :title="archivosSeleccionados.length >= 5 ? 'Máximo 5 archivos' : 'Adjuntar archivo'">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z">
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
                   </path>
                 </svg>
-                <span class="file-extension">{{ obtenerExtension(archivo.nombre) }}</span>
-              </div>
-              
-              <div class="file-info">
-                <p class="file-name" :title="archivo.nombre">{{ archivo.nombre }}</p>
-                <p class="file-size">{{ formatearTamano(archivo.tamano) }}</p>
-              </div>
-              
-              <button class="btn-remove-card" @click="eliminarArchivo(index)" type="button" title="Eliminar archivo">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </button>
+
+              <textarea v-model="consulta"
+                        ref="textareaInput"
+                        class="text-input"
+                        placeholder="Escribe tu consulta..."
+                        rows="1"
+                        @input="ajustarAlturaTextarea"
+                        @keydown.enter.exact.prevent="enviarConsulta"
+                        :disabled="cargando">
+              </textarea>
+
+              <button type="submit" 
+                      class="btn-send" 
+                      :disabled="!puedeEnviar || cargando"
+                      title="Enviar consulta">
+                <svg v-if="!cargando" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8">
+                  </path>
                 </svg>
+                <span v-else class="spinner-small"></span>
+              </button>
+
+              <input type="file" 
+                     ref="archivoInput"
+                     class="file-input-hidden"
+                     @change="manejarSeleccionArchivo"
+                     accept=".jpg,.jpeg,.png,.pdf,.docx,.doc,.txt,.xlsx,.xls,.csv,.pptx,.ppt"
+                     multiple>
+            </form>
+
+            <div class="file-indicator" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
+              <span class="file-count-badge">
+                📎 {{ archivosSeleccionados.length }} archivo{{ archivosSeleccionados.length > 1 ? 's' : '' }} adjunto{{ archivosSeleccionados.length > 1 ? 's' : '' }}
+              </span>
+              <button @click="limpiarArchivos" type="button" class="btn-clear-all">
+                Limpiar todos
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Área de resultados -->
-        <div class="results-section" v-if="mostrarResultado">
-          <div class="message-container">
-            <!-- Consulta del usuario -->
-            <div class="message user-message">
-              <div class="message-content">
-                <div class="message-header">
-                  <strong>Tu consulta:</strong>
-                </div>
-                <p>{{ consulta }}</p>
-                <div class="message-files" v-if="archivosSeleccionados.length > 0">
-                  <div v-for="(archivo, index) in archivosSeleccionados" :key="index" class="message-file-item">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                      </path>
-                    </svg>
-                    <span>{{ archivo.nombre }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Respuesta del sistema -->
-            <div class="message assistant-message">
-              <div class="message-content">
-                <div class="message-header">
-                  <strong>Respuesta:</strong>
-                </div>
-                <div v-if="cargando" class="loading-indicator">
-                  <span class="spinner"></span>
-                  <span>Procesando tu consulta...</span>
-                </div>
-                <div v-else v-html="resultado" class="response-text"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Botón para nueva consulta -->
-          <div class="new-query-btn">
-            <button @click="nuevaConsulta" type="button" class="btn-secondary">
-              Nueva consulta
-            </button>
-          </div>
-        </div>
-
       </div>
-
-      <!-- Input fijo en la parte inferior -->
-      <div class="chat-input-wrapper">
-        <div class="chat-input-container">
-          <form @submit.prevent="enviarConsulta" class="input-form">
-            
-            <!-- Botón de adjuntar archivo -->
-            <button type="button" 
-                    class="btn-attach" 
-                    @click="abrirSelectorArchivos"
-                    :disabled="cargando || archivosSeleccionados.length >= 5"
-                    :title="archivosSeleccionados.length >= 5 ? 'Máximo 5 archivos' : 'Adjuntar archivo'">
-              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                </path>
-              </svg>
-            </button>
-
-            <!-- Input de texto -->
-            <textarea v-model="consulta"
-                      ref="textareaInput"
-                      class="text-input"
-                      placeholder="Escribe tu consulta..."
-                      rows="1"
-                      @input="ajustarAlturaTextarea"
-                      @keydown.enter.exact.prevent="enviarConsulta"
-                      :disabled="cargando">
-            </textarea>
-
-            <!-- Botón de envío -->
-            <button type="submit" 
-                    class="btn-send" 
-                    :disabled="!puedeEnviar || cargando"
-                    title="Enviar consulta">
-              <svg v-if="!cargando" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8">
-                </path>
-              </svg>
-              <span v-else class="spinner-small"></span>
-            </button>
-
-            <!-- Input oculto para archivos -->
-            <input type="file" 
-                   ref="archivoInput"
-                   class="file-input-hidden"
-                   @change="manejarSeleccionArchivo"
-                   accept=".jpg,.jpeg,.png,.pdf,.docx,.doc,.txt,.xlsx,.xls,.csv,.pptx,.ppt"
-                   multiple>
-          </form>
-
-          <!-- Indicador de archivos adjuntos -->
-          <div class="file-indicator" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
-            <span class="file-count-badge">
-              📎 {{ archivosSeleccionados.length }} archivo{{ archivosSeleccionados.length > 1 ? 's' : '' }} adjunto{{ archivosSeleccionados.length > 1 ? 's' : '' }}
-            </span>
-            <button @click="limpiarArchivos" type="button" class="btn-clear-all">
-              Limpiar todos
-            </button>
-          </div>
-        </div>
-      </div>
-
     </div>
+
+    <style>
+      .chat-wrapper {
+        display: flex;
+        height: calc(100vh - 200px);
+        gap: 0;
+      }
+
+      /* Importar estilos del chat original */
+      /* ... (copiar todos los estilos del inicio-multiarchivo.js) ... */
+    </style>
   </base-layout>
   `,
-  
-  // Estado del componente
+
   data() {
     return {
+      // Datos del usuario
+      usuarioEmail: '',
+      rolUsuario: 'Usuario',
+
+      // Conversación actual
+      conversacionId: null,
+      mensajesConversacion: [],
+
+      // Archivos
       archivosSeleccionados: [],
+
+      // UI
       consulta: '',
       resultado: '',
       mostrarResultado: false,
@@ -802,45 +830,129 @@ app.component("web-chats", {
       isDragOver: false
     };
   },
-  
-  // Propiedades computadas
+
   computed: {
     puedeEnviar() {
       return this.consulta.trim().length >= 1 && !this.cargando;
     }
   },
-  
-  // Métodos del componente
+
   methods: {
-    // ========== Gestión de Drag & Drop ==========
-    
+    // ========== Inicialización ==========
+
+    cargarDatosUsuario() {
+      console.log('🔍 Cargando datos del usuario...');
+
+      // Tu sistema usa 'userData' en lugar de 'userInfo'
+      const userData = localStorage.getItem('userData');
+      const userEmail = localStorage.getItem('userEmail');
+
+      if (userData) {
+        try {
+          const info = JSON.parse(userData);
+          console.log('📋 Datos del usuario:', info);
+
+          // Extraer datos
+          this.usuarioEmail = info.correo || userEmail || '';
+          this.rolUsuario = this.getRoleName(info.rol);
+
+          console.log('✅ Email cargado:', this.usuarioEmail);
+          console.log('✅ Rol:', this.rolUsuario);
+
+        } catch (e) {
+          console.error('❌ Error al cargar datos del usuario:', e);
+        }
+      } else if (userEmail) {
+        // Fallback: usar solo userEmail
+        this.usuarioEmail = userEmail;
+        this.rolUsuario = 'Usuario';
+        console.log('✅ Email cargado (fallback):', this.usuarioEmail);
+      }
+    },
+
+    getRoleName(rol) {
+      const roles = {
+        1: 'Administrador',
+        2: 'Supervisor',
+        3: 'Usuario',
+        4: 'Auditor'
+      };
+      return roles[rol] || 'Usuario';
+    },
+
+    // ========== Gestión de conversaciones ==========
+
+    iniciarNuevaConversacion() {
+      this.conversacionId = null;
+      this.mensajesConversacion = [];
+      this.limpiarChat();
+    },
+
+    async cargarConversacion(id) {
+      this.conversacionId = id;
+      this.cargando = true;
+
+      try {
+        const respuesta = await fetch(
+          `../wecIA2/conversaciones/conversaciones.app?action=mensajes&conversacion_id=${id}`
+        );
+
+        if (!respuesta.ok) {
+          throw new Error('Error al cargar mensajes');
+        }
+
+        const data = await respuesta.json();
+        this.mensajesConversacion = data.mensajes || [];
+        this.mostrarResultado = this.mensajesConversacion.length > 0;
+
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los mensajes',
+          confirmButtonColor: '#10a37f'
+        });
+      } finally {
+        this.cargando = false;
+      }
+    },
+
+    limpiarChat() {
+      this.consulta = '';
+      this.resultado = '';
+      this.mostrarResultado = false;
+      this.mensajesConversacion = [];
+      this.limpiarArchivos();
+    },
+
+    // ========== Drag & Drop (igual que antes) ==========
+
     handleDragEnter(evento) {
       if (this.cargando || this.archivosSeleccionados.length >= 5) return;
       this.isDragOver = true;
     },
-    
+
     handleDragOver(evento) {
       if (this.cargando || this.archivosSeleccionados.length >= 5) return;
       this.isDragOver = true;
     },
-    
+
     handleDragLeave(evento) {
       if (evento.target === evento.currentTarget) {
         this.isDragOver = false;
       }
     },
-    
+
     handleDrop(evento) {
       this.isDragOver = false;
-      
       if (this.cargando) return;
-      
       const archivos = Array.from(evento.dataTransfer.files);
       this.procesarArchivos(archivos);
     },
-    
-    // ========== Gestión de archivos ==========
-    
+
+    // ========== Gestión de archivos (igual que antes) ==========
+
     abrirSelectorArchivos() {
       if (this.archivosSeleccionados.length >= 5) {
         Swal.fire({
@@ -853,39 +965,38 @@ app.component("web-chats", {
       }
       this.$refs.archivoInput.click();
     },
-    
+
     manejarSeleccionArchivo(evento) {
+      console.log('📎 manejarSeleccionArchivo llamado');
+    console.log('📂 Archivos:', evento.target.files.length);
       const archivos = Array.from(evento.target.files);
       this.procesarArchivos(archivos);
-      // Limpiar el input para permitir seleccionar el mismo archivo nuevamente
       evento.target.value = '';
     },
-    
+
     procesarArchivos(archivos) {
-      // Tipos de archivo permitidos
+        console.log('🔄 procesarArchivos iniciado');
+        console.log('📦 Archivos recibidos:', archivos.length);
+        console.log('📦 Archivos actualmente seleccionados:', this.archivosSeleccionados.length);
+        
       const tiposPermitidos = [
-        'image/jpeg',
-        'image/png',
-        'application/pdf',
+        'image/jpeg', 'image/png', 'application/pdf',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/msword',
-        'text/plain',
+        'application/msword', 'text/plain',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-        'text/csv',
+        'application/vnd.ms-excel', 'text/csv',
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'application/vnd.ms-powerpoint'
       ];
-      
-      // Extensiones permitidas (fallback)
+
       const extensionesPermitidas = ['.jpg', '.jpeg', '.png', '.pdf', '.docx', '.doc', '.txt', '.xlsx', '.xls', '.csv', '.pptx', '.ppt'];
-      
-      const tamañoMaximo = 10 * 1024 * 1024; // 10MB
-      
-      // Calcular cuántos archivos más se pueden agregar
+      const tamañoMaximo = 10 * 1024 * 1024;
       const espacioDisponible = 5 - this.archivosSeleccionados.length;
-      
+
+      console.log('📊 Espacio disponible:', espacioDisponible);
+
       if (espacioDisponible === 0) {
+        console.warn('⚠️ Sin espacio disponible');
         Swal.fire({
           icon: 'info',
           title: 'Límite alcanzado',
@@ -894,35 +1005,43 @@ app.component("web-chats", {
         });
         return;
       }
-      
-      // Limitar la cantidad de archivos a procesar
+
       const archivosAProcesar = archivos.slice(0, espacioDisponible);
-      
+      console.log('📋 Archivos a procesar:', archivosAProcesar.length);
+
       if (archivos.length > espacioDisponible) {
         Swal.fire({
           icon: 'info',
           title: 'Archivos limitados',
-          text: `Solo se pueden agregar ${espacioDisponible} archivo(s) más. Se procesarán los primeros ${espacioDisponible}.`,
+          text: `Solo se pueden agregar ${espacioDisponible} archivo(s) más.`,
           confirmButtonColor: '#10a37f'
         });
       }
-      
-      archivosAProcesar.forEach(archivo => {
-        // Validar tipo de archivo
+
+      archivosAProcesar.forEach((archivo, index) => {
+        console.log(`--- Procesando archivo ${index + 1} ---`);
+        console.log('📄 Nombre:', archivo.name);
+        console.log(`\n--- Procesando archivo ${index + 1} ---`);
+        console.log('📄 Nombre:', archivo.name);
+        console.log('📄 Tipo:', archivo.type);
+        console.log('📄 Tamaño:', archivo.size);
+
         const extension = '.' + archivo.name.split('.').pop().toLowerCase();
-        
+        console.log('📄 Extensión:', extension);
+
         if (!tiposPermitidos.includes(archivo.type) && !extensionesPermitidas.includes(extension)) {
+          console.error('❌ Archivo rechazado - tipo no permitido');
           Swal.fire({
             icon: 'error',
             title: 'Archivo no permitido',
-            text: `El archivo "${archivo.name}" no es válido. Formatos aceptados: JPG, JPEG, PNG, PDF, DOCX, DOC, TXT, XLSX, XLS, CSV, PPTX, PPT.`,
+            text: `El archivo "${archivo.name}" no es válido.`,
             confirmButtonColor: '#10a37f'
           });
           return;
         }
-        
-        // Validar tamaño
+
         if (archivo.size > tamañoMaximo) {
+          console.error('❌ Archivo rechazado - muy grande');
           Swal.fire({
             icon: 'warning',
             title: 'Archivo demasiado grande',
@@ -931,8 +1050,8 @@ app.component("web-chats", {
           });
           return;
         }
-        
-        // Crear objeto de archivo
+
+        console.log('✅ Creando objeto archivo...');
         const archivoData = {
           archivo: archivo,
           nombre: archivo.name,
@@ -940,35 +1059,63 @@ app.component("web-chats", {
           esImagen: archivo.type.startsWith('image/'),
           vistaPreviaUrl: ''
         };
-        
-        // Generar vista previa para imágenes
+
         if (archivoData.esImagen) {
+          console.log('🖼️ Generando vista previa...');
           const lector = new FileReader();
           lector.onload = (e) => {
             archivoData.vistaPreviaUrl = e.target.result;
+            console.log('✅ Vista previa lista');
           };
           lector.readAsDataURL(archivo);
         }
-        
+
+        console.log('➕ Antes de push:', this.archivosSeleccionados.length);
+        // this.archivosSeleccionados.push(archivoData);
+        this.archivosSeleccionados = [...this.archivosSeleccionados, archivoData];
+        console.log('➕ Después de push:', this.archivosSeleccionados.length);
+        console.log('✅ Archivo agregado:', archivo.name);
         this.archivosSeleccionados.push(archivoData);
       });
+
+      console.log('🔄 Recreando array para forzar reactividad...');
+      this.archivosSeleccionados = [...this.archivosSeleccionados];
+      this.$forceUpdate();
+
+      console.log('🎉 Proceso completado');
+      console.log('📦 Total archivos:', this.archivosSeleccionados.length);
+
+      // ===== FORZAR ACTUALIZACIÓN DE VISTA =====
+      this.$nextTick(() => {
+        console.log('🔄 Forzando actualización de Vue...');
+        this.$forceUpdate();
+        console.log('✅ Vista actualizada');
+      });
     },
-    
+
     eliminarArchivo(index) {
       this.archivosSeleccionados.splice(index, 1);
     },
-    
+
     limpiarArchivos() {
+      // Limpiar array de archivos
       this.archivosSeleccionados = [];
-      this.$refs.archivoInput.value = '';
+
+      // Limpiar input de archivo de forma más robusta
+      this.$nextTick(() => {
+        if (this.$refs.archivoInput) {
+          this.$refs.archivoInput.value = '';  // SOLO ESTO
+          console.log('✅ Archivos limpiados');
+        }
+      });
     },
-    
+
     // ========== Utilidades ==========
-    
+
     obtenerExtension(nombreArchivo) {
       return nombreArchivo.split('.').pop().toUpperCase();
     },
-    
+
     formatearTamano(bytes) {
       if (bytes === 0) return '0 Bytes';
       const k = 1024;
@@ -976,20 +1123,64 @@ app.component("web-chats", {
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
     },
-    
-    // ========== Gestión del textarea ==========
-    
+
     ajustarAlturaTextarea(evento) {
       const textarea = evento.target;
       textarea.style.height = 'auto';
       textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
     },
-    
-    // ========== Envío de consulta ==========
-    
+
+    // NUEVO - Iniciar nueva conversación
+    iniciarNuevaConversacion() {
+      this.conversacionId = null;
+      this.mensajesConversacion = [];
+      this.limpiarChat();
+    },
+
+    // NUEVO - Cargar conversación existente
+    async cargarConversacion(id) {
+      this.conversacionId = id;
+      this.cargando = true;
+
+      try {
+        const respuesta = await fetch(
+          `../wecIA2/conversaciones/conversaciones.app?action=mensajes&conversacion_id=${id}`
+        );
+
+        if (!respuesta.ok) {
+          throw new Error('Error al cargar mensajes');
+        }
+
+        const data = await respuesta.json();
+        this.mensajesConversacion = data.mensajes || [];
+        this.mostrarResultado = this.mensajesConversacion.length > 0;
+
+      } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No se pudieron cargar los mensajes',
+          confirmButtonColor: '#10a37f'
+        });
+      } finally {
+        this.cargando = false;
+      }
+    },
+
+    // NUEVO - Limpiar chat
+    limpiarChat() {
+      this.consulta = '';
+      this.resultado = '';
+      this.mostrarResultado = false;
+      this.mensajesConversacion = [];
+      this.limpiarArchivos();
+    },
+
+    // MODIFICAR - enviarConsulta para integrar con BD
     async enviarConsulta() {
       if (!this.puedeEnviar) return;
-      
+
       if (!this.consulta.trim()) {
         Swal.fire({
           icon: 'warning',
@@ -999,76 +1190,149 @@ app.component("web-chats", {
         });
         return;
       }
-      
+
       this.cargando = true;
       this.mostrarResultado = true;
-      this.resultado = '';
-      
-      // Preparar FormData
+
+      // Agregar mensaje del usuario a la vista inmediatamente
+      const mensajeUsuario = {
+        rol: 'user',
+        contenido: this.consulta,
+        archivos: this.archivosSeleccionados.map(a => ({ nombre_original: a.nombre }))
+      };
+      this.mensajesConversacion.push(mensajeUsuario);
+
       const datosFormulario = new FormData();
       datosFormulario.append('consulta', this.consulta.trim());
-      
-      // Agregar todos los archivos como array
+      datosFormulario.append('usuario_email', this.usuarioEmail);
+
+      // ===== IMPORTANTE: Enviar conversacion_id si existe =====
+      if (this.conversacionId) {
+        datosFormulario.append('conversacion_id', this.conversacionId);
+      }
+
       this.archivosSeleccionados.forEach((archivoData) => {
         datosFormulario.append('documentos[]', archivoData.archivo);
       });
-      
+
       try {
-        // Realizar petición al backend
         const respuesta = await fetch('../wecIA2/chats/chats.app', {
           method: 'POST',
           body: datosFormulario
         });
-        
+
         if (!respuesta.ok) {
           throw new Error(`Error HTTP: ${respuesta.status}`);
         }
-        
+
         const data = await respuesta.json();
-        
-        // Verificar si hay error en la respuesta
+
         if (data.error) {
           throw new Error(data.error);
         }
-        
-        // Limpiar HTML de la respuesta
+
+        // ===== IMPORTANTE: Actualizar ID de conversación si es nuevo =====
+        if (data.conversacion_id && !this.conversacionId) {
+          this.conversacionId = data.conversacion_id;
+        }
+
         let htmlLimpio = data.mensaje || 'No se recibió respuesta del servidor.';
         htmlLimpio = htmlLimpio.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
-        
-        this.resultado = htmlLimpio;
-        
+
+        // Agregar respuesta del asistente
+        this.mensajesConversacion.push({
+          rol: 'assistant',
+          contenido: htmlLimpio
+        });
+
+        // ===== NUEVO: Actualizar sidebar del baseLayout =====
+        // Buscar el componente baseLayout en el árbol de componentes
+        let baseLayout = this.$parent;
+        while (baseLayout && baseLayout.$options.name !== 'base-layout') {
+          baseLayout = baseLayout.$parent;
+        }
+
+        if (baseLayout) {
+          baseLayout.actualizarHistorial();
+          baseLayout.setConversacionActiva(this.conversacionId);
+        }
+
+        // Limpiar input
+        this.consulta = '';
+        this.archivosSeleccionados = [];
+        this.$nextTick(() => {
+
+          if (this.$refs.archivoInput) {
+            this.$refs.archivoInput.value = '';  // SOLO ESTO, NO cambiar el type
+          }
+
+          if (this.$refs.textareaInput) {
+            this.$refs.textareaInput.style.height = 'auto';
+            this.$refs.textareaInput.focus();
+          }
+
+          console.log('✅ Todo limpio, listo para nueva consulta');
+        });
+
       } catch (error) {
-        console.error('Error al procesar la consulta:', error);
-        this.resultado = `<p style="color: #dc3545;">Error: ${error.message}</p>`;
+        console.error('Error:', error);
+
+        // Quitar el mensaje del usuario de la vista
+        this.mensajesConversacion.pop();
+
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.message,
+          confirmButtonColor: '#10a37f'
+        });
       } finally {
         this.cargando = false;
+        // DEBUG: Verificar que realmente se puso en false
+        console.log('🔄 Cargando establecido a false');
+
+        // Forzar actualización de Vue
+        this.$forceUpdate();
       }
-    },
-    
-    nuevaConsulta() {
-      this.consulta = '';
-      this.resultado = '';
-      this.mostrarResultado = false;
-      this.limpiarArchivos();
-      
-      // Resetear altura del textarea
-      this.$nextTick(() => {
-        if (this.$refs.textareaInput) {
-          this.$refs.textareaInput.style.height = 'auto';
-        }
-      });
     }
+
   },
-  
-  // Hooks del ciclo de vida
+
   mounted() {
-    // Enfocar el textarea al montar el componente
+
+    this.cargarDatosUsuario();
+
+    // ===== NUEVO - Escuchar eventos del baseLayout =====
+    window.addEventListener('nueva-conversacion-chat', this.iniciarNuevaConversacion);
+
+    window.addEventListener('seleccionar-conversacion-chat', (e) => {
+      this.cargarConversacion(e.detail.id);
+    });
+
+    window.addEventListener('conversacion-eliminada-chat', this.limpiarChat);
+
     this.$nextTick(() => {
       if (this.$refs.textareaInput) {
         this.$refs.textareaInput.focus();
       }
     });
-  }
+
+    this.$nextTick(() => {
+      if (this.$refs.textareaInput) {
+        this.$refs.textareaInput.focus();
+      }
+    });
+
+    window.addEventListener('seleccionar-conversacion-chat', (e) => {
+      this.cargarConversacion(e.detail.id);
+    });
+  },
+  beforeUnmount() {
+    // Limpiar listeners de eventos
+    window.removeEventListener('nueva-conversacion-chat', this.iniciarNuevaConversacion);
+    window.removeEventListener('seleccionar-conversacion-chat', this.cargarConversacion);
+    window.removeEventListener('conversacion-eliminada-chat', this.limpiarChat);
+  },
 });
 
 // Componente de Configuración
