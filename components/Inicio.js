@@ -651,7 +651,7 @@ app.component("web-chats", {
           </div>
 
           <!-- Vista previa de documentos subidos -->
-          <div class="documents-preview" v-if="archivosSeleccionados.length > 0 && !mostrarResultado">
+          <div class="documents-preview" v-if="archivosSeleccionados.length > 0">
             <h3 class="preview-title">Archivos seleccionados ({{ archivosSeleccionados.length }}/5)</h3>
             
             <div class="files-grid">
@@ -841,7 +841,6 @@ app.component("web-chats", {
     // ========== Inicialización ==========
 
     cargarDatosUsuario() {
-      console.log('🔍 Cargando datos del usuario...');
 
       // Tu sistema usa 'userData' en lugar de 'userInfo'
       const userData = localStorage.getItem('userData');
@@ -856,17 +855,13 @@ app.component("web-chats", {
           this.usuarioEmail = info.correo || userEmail || '';
           this.rolUsuario = this.getRoleName(info.rol);
 
-          console.log('✅ Email cargado:', this.usuarioEmail);
-          console.log('✅ Rol:', this.rolUsuario);
 
         } catch (e) {
-          console.error('❌ Error al cargar datos del usuario:', e);
         }
       } else if (userEmail) {
         // Fallback: usar solo userEmail
         this.usuarioEmail = userEmail;
         this.rolUsuario = 'Usuario';
-        console.log('✅ Email cargado (fallback):', this.usuarioEmail);
       }
     },
 
@@ -906,7 +901,6 @@ app.component("web-chats", {
         this.mostrarResultado = this.mensajesConversacion.length > 0;
 
       } catch (error) {
-        console.error('Error:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -967,17 +961,18 @@ app.component("web-chats", {
     },
 
     manejarSeleccionArchivo(evento) {
-      console.log('📎 manejarSeleccionArchivo llamado');
-    console.log('📂 Archivos:', evento.target.files.length);
       const archivos = Array.from(evento.target.files);
+  
+      if (archivos.length === 0) {
+        return;
+      }
+
       this.procesarArchivos(archivos);
       evento.target.value = '';
+  
     },
 
     procesarArchivos(archivos) {
-        console.log('🔄 procesarArchivos iniciado');
-        console.log('📦 Archivos recibidos:', archivos.length);
-        console.log('📦 Archivos actualmente seleccionados:', this.archivosSeleccionados.length);
         
       const tiposPermitidos = [
         'image/jpeg', 'image/png', 'application/pdf',
@@ -993,10 +988,8 @@ app.component("web-chats", {
       const tamañoMaximo = 10 * 1024 * 1024;
       const espacioDisponible = 5 - this.archivosSeleccionados.length;
 
-      console.log('📊 Espacio disponible:', espacioDisponible);
 
       if (espacioDisponible === 0) {
-        console.warn('⚠️ Sin espacio disponible');
         Swal.fire({
           icon: 'info',
           title: 'Límite alcanzado',
@@ -1007,7 +1000,6 @@ app.component("web-chats", {
       }
 
       const archivosAProcesar = archivos.slice(0, espacioDisponible);
-      console.log('📋 Archivos a procesar:', archivosAProcesar.length);
 
       if (archivos.length > espacioDisponible) {
         Swal.fire({
@@ -1019,18 +1011,19 @@ app.component("web-chats", {
       }
 
       archivosAProcesar.forEach((archivo, index) => {
-        console.log(`--- Procesando archivo ${index + 1} ---`);
-        console.log('📄 Nombre:', archivo.name);
-        console.log(`\n--- Procesando archivo ${index + 1} ---`);
-        console.log('📄 Nombre:', archivo.name);
-        console.log('📄 Tipo:', archivo.type);
-        console.log('📄 Tamaño:', archivo.size);
 
         const extension = '.' + archivo.name.split('.').pop().toLowerCase();
-        console.log('📄 Extensión:', extension);
+
+        // ===== NUEVO: Verificar si ya existe =====
+        const yaExiste = this.archivosSeleccionados.some(a => 
+          a.nombre === archivo.name && a.tamano === archivo.size
+        );
+        
+        if (yaExiste) {
+          return;
+        }
 
         if (!tiposPermitidos.includes(archivo.type) && !extensionesPermitidas.includes(extension)) {
-          console.error('❌ Archivo rechazado - tipo no permitido');
           Swal.fire({
             icon: 'error',
             title: 'Archivo no permitido',
@@ -1041,7 +1034,6 @@ app.component("web-chats", {
         }
 
         if (archivo.size > tamañoMaximo) {
-          console.error('❌ Archivo rechazado - muy grande');
           Swal.fire({
             icon: 'warning',
             title: 'Archivo demasiado grande',
@@ -1051,7 +1043,6 @@ app.component("web-chats", {
           return;
         }
 
-        console.log('✅ Creando objeto archivo...');
         const archivoData = {
           archivo: archivo,
           nombre: archivo.name,
@@ -1061,35 +1052,22 @@ app.component("web-chats", {
         };
 
         if (archivoData.esImagen) {
-          console.log('🖼️ Generando vista previa...');
           const lector = new FileReader();
           lector.onload = (e) => {
             archivoData.vistaPreviaUrl = e.target.result;
-            console.log('✅ Vista previa lista');
           };
           lector.readAsDataURL(archivo);
         }
 
-        console.log('➕ Antes de push:', this.archivosSeleccionados.length);
-        // this.archivosSeleccionados.push(archivoData);
-        this.archivosSeleccionados = [...this.archivosSeleccionados, archivoData];
-        console.log('➕ Después de push:', this.archivosSeleccionados.length);
-        console.log('✅ Archivo agregado:', archivo.name);
         this.archivosSeleccionados.push(archivoData);
       });
 
-      console.log('🔄 Recreando array para forzar reactividad...');
-      this.archivosSeleccionados = [...this.archivosSeleccionados];
-      this.$forceUpdate();
+      // this.$forceUpdate();
 
-      console.log('🎉 Proceso completado');
-      console.log('📦 Total archivos:', this.archivosSeleccionados.length);
 
-      // ===== FORZAR ACTUALIZACIÓN DE VISTA =====
+      // Forzar actualización
       this.$nextTick(() => {
-        console.log('🔄 Forzando actualización de Vue...');
         this.$forceUpdate();
-        console.log('✅ Vista actualizada');
       });
     },
 
@@ -1105,7 +1083,6 @@ app.component("web-chats", {
       this.$nextTick(() => {
         if (this.$refs.archivoInput) {
           this.$refs.archivoInput.value = '';  // SOLO ESTO
-          console.log('✅ Archivos limpiados');
         }
       });
     },
@@ -1156,7 +1133,6 @@ app.component("web-chats", {
         this.mostrarResultado = this.mensajesConversacion.length > 0;
 
       } catch (error) {
-        console.error('Error:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -1247,35 +1223,50 @@ app.component("web-chats", {
 
         // ===== NUEVO: Actualizar sidebar del baseLayout =====
         // Buscar el componente baseLayout en el árbol de componentes
-        let baseLayout = this.$parent;
-        while (baseLayout && baseLayout.$options.name !== 'base-layout') {
-          baseLayout = baseLayout.$parent;
-        }
+        // ===== ACTUALIZAR SIDEBAR =====
+        // if (this.$refs.sidebar) {
+        //   // Verificar qué método tiene el sidebar para recargar
+        //   if (typeof this.$refs.sidebar.cargarConversaciones === 'function') {
+        //     this.$refs.sidebar.cargarConversaciones();
+        //   } else if (typeof this.$refs.sidebar.actualizarHistorial === 'function') {
+        //     this.$refs.sidebar.actualizarHistorial();
+        //   } else {
+        //   }
+          
+        //   // Establecer conversación activa
+        //   if (this.$refs.sidebar.conversacionActiva !== undefined) {
+        //     this.$refs.sidebar.conversacionActiva = this.conversacionId;
+        //   }
+          
+        // }
 
-        if (baseLayout) {
-          baseLayout.actualizarHistorial();
-          baseLayout.setConversacionActiva(this.conversacionId);
-        }
-
-        // Limpiar input
+        // ===== LIMPIEZA MEJORADA CON LOGS =====
+        
+        // Limpiar texto y archivos
         this.consulta = '';
         this.archivosSeleccionados = [];
-        this.$nextTick(() => {
+        
 
+        this.$nextTick(() => {
+          // Limpiar input de archivos
           if (this.$refs.archivoInput) {
-            this.$refs.archivoInput.value = '';  // SOLO ESTO, NO cambiar el type
+            this.$refs.archivoInput.value = '';
           }
 
+          // Ajustar textarea
           if (this.$refs.textareaInput) {
             this.$refs.textareaInput.style.height = 'auto';
             this.$refs.textareaInput.focus();
           }
 
-          console.log('✅ Todo limpio, listo para nueva consulta');
+          // Verificación final
+          
+          if (this.archivosSeleccionados.length === 0) {
+          } else {
+          }
         });
 
       } catch (error) {
-        console.error('Error:', error);
 
         // Quitar el mensaje del usuario de la vista
         this.mensajesConversacion.pop();
@@ -1289,7 +1280,6 @@ app.component("web-chats", {
       } finally {
         this.cargando = false;
         // DEBUG: Verificar que realmente se puso en false
-        console.log('🔄 Cargando establecido a false');
 
         // Forzar actualización de Vue
         this.$forceUpdate();
